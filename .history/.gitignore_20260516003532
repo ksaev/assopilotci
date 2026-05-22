@@ -16,10 +16,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# lockfiles (choose one only)
-package-lock.json
-yarn.lock
-
 # env files
 .env*
 
