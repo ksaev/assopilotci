@@ -1,0 +1,524 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+
+  firstName String?
+  lastName  String?
+  avatar    String?
+
+  role UserRole @default(MEMBER)
+
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+
+  sessionTimeout Int @default(30)
+
+  logs          ActivityLog[]
+  organizations OrganizationMember[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+model Organization {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  country String
+  city    String?
+  region  String?
+
+  email       String
+  phone       String?
+  logo        String?
+  description String?
+
+  status OrganizationStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activityLogs        ActivityLog[]
+  budgets             Budget[]
+  documents           Document[]
+  events              Event[]
+  invoices            Invoice[]
+  membersData         Member[]
+  notifications       Notification[]
+  members             OrganizationMember[]
+  settings            OrganizationSettings?
+  payments            Payment[]
+  transactions        Transaction[]
+  organizationRequest OrganizationRequest?
+}
+
+model OrganizationMember {
+  id String @id @default(cuid())
+
+  role UserRole @default(MEMBER)
+
+  userId         String
+  organizationId String
+
+  createdAt DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model OrganizationSettings {
+  id String @id @default(cuid())
+
+  organizationId String @unique
+
+  currency String @default("XOF")
+  language String @default("fr")
+  timezone String @default("Africa/Abidjan")
+
+  emailNotifications Boolean @default(true)
+  smsNotifications   Boolean @default(false)
+
+  dueMembershipFee Int?
+  membershipPeriod String @default("monthly")
+
+  twoFactorAuth  Boolean @default(false)
+  sessionTimeout Int     @default(30)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationRequest {
+  id String @id @default(cuid())
+
+  name  String
+  email String
+  phone String?
+
+  country String
+  city    String?
+
+  description String?
+
+  status RequestStatus @default(PENDING)
+
+  paymentRequired Boolean       @default(true)
+  paymentStatus   PaymentStatus @default(PENDING)
+
+  plan String?
+
+  reviewedBy String?
+  reviewedAt DateTime?
+
+  organizationType String?
+
+  organizationId String? @unique
+
+  createdAt DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+}
+
+model Member {
+  id String @id @default(cuid())
+
+  firstName String?
+  lastName  String?
+
+  email String
+  phone String?
+
+  status MemberStatus @default(ACTIVE)
+  tier   MemberTier   @default(BRONZE)
+
+  idNumber String? @unique
+
+  joinDate    DateTime  @default(now())
+  dateOfBirth DateTime?
+
+  organizationId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  payments            Payment[]
+  eventParticipations EventParticipation[]
+  notifications       Notification[]
+  documents           Document[]
+  dependents          Dependent[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+}
+
+model Payment {
+  id String @id @default(cuid())
+
+  amount   Int
+  currency String @default("XOF")
+
+  status PaymentStatus @default(PENDING)
+
+  type   PaymentType
+  method PaymentMethod
+
+  reference String? @unique
+
+  mobileProvider String?
+  phoneNumber    String?
+
+  memberId       String
+  organizationId String
+
+  transactionId String?
+  invoiceId     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member       Member       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+  invoice     Invoice?     @relation(fields: [invoiceId], references: [id])
+}
+
+model Transaction {
+  id String @id @default(cuid())
+
+  description String
+  amount      Int
+
+  type TransactionType
+
+  status TransactionStatus @default(COMPLETED)
+
+  organizationId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  payments Payment[]
+}
+
+model Event {
+  id String @id @default(cuid())
+
+  title       String
+  description String?
+
+  startDate DateTime
+  endDate   DateTime
+
+  location String?
+
+  maxParticipants Int?
+
+  status EventStatus @default(SCHEDULED)
+
+  organizationId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  participations EventParticipation[]
+}
+
+model EventParticipation {
+  id String @id @default(cuid())
+
+  status ParticipationStatus @default(REGISTERED)
+
+  checkedInAt DateTime?
+
+  memberId String
+  eventId  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, eventId])
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  title   String
+  message String
+
+  type NotificationType
+
+  isRead Boolean @default(false)
+
+  memberId       String?
+  organizationId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member       Member?      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id String @id @default(cuid())
+
+  title String
+
+  type DocumentType
+
+  fileUrl  String
+  fileSize Int?
+
+  organizationId String
+  memberId       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  member       Member?      @relation(fields: [memberId], references: [id], onDelete: SetNull)
+}
+
+model Invoice {
+  id String @id @default(cuid())
+
+  number String @unique
+
+  amount Int
+
+  status InvoiceStatus @default(PENDING)
+
+  issueDate DateTime  @default(now())
+  dueDate   DateTime?
+
+  organizationId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  payments Payment[]
+}
+
+model Budget {
+  id String @id @default(cuid())
+
+  name String
+
+  amount Int
+  spent  Int @default(0)
+
+  period String
+
+  status BudgetStatus @default(ACTIVE)
+
+  organizationId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Dependent {
+  id String @id @default(cuid())
+
+  memberId String
+
+  firstName String?
+  lastName  String?
+
+  birthDate DateTime
+
+  photo String?
+
+  documents Json?
+
+  status DependentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id String @id @default(cuid())
+
+  action String
+  entity String
+
+  entityId String?
+
+  description String?
+
+  ipAddress String?
+  userAgent String?
+
+  metadata Json?
+
+  userId         String
+  organizationId String
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([entity])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  OWNER
+  ADMIN
+  TREASURER
+  SECRETARY
+  MEMBER
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+  ARCHIVED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  RESIGNED
+}
+
+enum MemberTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentType {
+  MEMBERSHIP_FEE
+  EVENT_REGISTRATION
+  DONATION
+  OTHER
+}
+
+enum PaymentMethod {
+  ORANGE_MONEY
+  MTN_MONEY
+  WAVE
+  BANK_TRANSFER
+  CASH
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum EventStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ParticipationStatus {
+  REGISTERED
+  CHECKED_IN
+  CANCELLED
+  NO_SHOW
+}
+
+enum NotificationType {
+  PAYMENT_REMINDER
+  EVENT_REMINDER
+  ANNOUNCEMENT
+  DOCUMENT_SHARED
+  MEMBERSHIP_EXPIRING
+  PAYMENT_RECEIVED
+  SYSTEM
+}
+
+enum DocumentType {
+  RECEIPT
+  INVOICE
+  REPORT
+  REGULATION
+  MEMBERSHIP_CARD
+  OTHER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum BudgetStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum DependentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
