@@ -1,39 +1,28 @@
-// app/api/dependents/[id]/route.ts
-
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
 
-type Params = {
-  params: Promise<{
-    id: string
-  }>
-}
+export const runtime = "nodejs"
 
 export async function DELETE(
   req: NextRequest,
-  { params }: Params
+  { params }: { params: { id: string } }
 ) {
   try {
-
     const user = getCurrentUser(req)
 
-    if (!user) {
+    if (!user?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       )
     }
 
-    const { id } = await params
-
     const dependent = await prisma.dependent.findUnique({
-      where: {
-        id
-      },
+      where: { id: params.id },
       include: {
-        member: true
-      }
+        member: true,
+      },
     })
 
     if (!dependent) {
@@ -43,13 +32,11 @@ export async function DELETE(
       )
     }
 
-    /* SECURITY */
-
     const access = await prisma.organizationMember.findFirst({
       where: {
         userId: user.userId,
-        organizationId: dependent.member.organizationId
-      }
+        organizationId: dependent.member.organizationId,
+      },
     })
 
     if (!access) {
@@ -60,33 +47,22 @@ export async function DELETE(
     }
 
     await prisma.dependent.delete({
-      where: {
-        id
-      }
+      where: { id: params.id },
     })
-
-    /* LOG */
 
     await prisma.activityLog.create({
       data: {
         action: "DEPENDENT_DELETED",
         entity: "Dependent",
-        entityId: id,
-
+        entityId: params.id,
         userId: user.userId,
-
-        organizationId:
-          dependent.member.organizationId
-      }
+        organizationId: dependent.member.organizationId,
+      },
     })
 
-    return NextResponse.json({
-      success: true
-    })
-
+    return NextResponse.json({ success: true })
   } catch (error) {
-
-    console.error(error)
+    console.error("DEPENDENT_DELETE_ERROR:", error)
 
     return NextResponse.json(
       { error: "Server error" },
