@@ -50,6 +50,7 @@ const adminLinks = [
 const memberLinks = [
   { href: "/membre/dashboard", label: "Mon Espace", icon: Home },
 
+  { href: "/membre/payments", label: "Mes Paiements", icon: Wallet },
   { href: "/membre/payments", label: "Paiements", icon: Wallet },
   { href: "/membre/dependents", label: "Personnes à charge", icon: Users },
   { href: "/membre/beneficiaries", label: "Bénéficiaires designés", icon: ShieldCheck },
