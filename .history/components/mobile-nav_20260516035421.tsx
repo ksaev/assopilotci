@@ -32,7 +32,10 @@ const adminLinks = [
   { href: "/admin/dashboard", label: "Tableau de Bord", icon: LayoutDashboard },
   { href: "/admin/members", label: "Membres", icon: Users },
   { href: "/admin/transactions", label: "Transactions", icon: CreditCard },
+
+
   { href: "/admin/solidarity", label: "Solidarité & Cotisations", icon: HeartHandshake },
+
   { href: "/admin/events", label: "Événements", icon: Calendar },
   { href: "/admin/reports", label: "Rapports", icon: FileText },
   { href: "/admin/documents", label: "Documents", icon: FileText },
@@ -42,9 +45,14 @@ const adminLinks = [
 
 const memberLinks = [
   { href: "/membre/dashboard", label: "Mon Espace", icon: Home },
+
+  { href: "/membre/payments", label: "Mes Paiements", icon: Wallet },
+  { href: "/membre/dependents", label: "Ayants droits", icon: Users },
+
   { href: "/membre/payments", label: "Paiements", icon: Wallet },
   { href: "/membre/dependents", label: "Personnes à charge", icon: Users },
   { href: "/membre/beneficiaries", label: "Bénéficiaires designés", icon: ShieldCheck },
+
   { href: "/membre/events", label: "Événements", icon: Calendar },
   { href: "/membre/notifications", label: "Notifications", icon: Bell },
   { href: "/membre/profile", label: "Mon Profil", icon: User },
