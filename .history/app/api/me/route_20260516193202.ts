@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verify } from "jsonwebtoken"
-import { prisma } from "@/lib/prisma"
+import prisma from "@/lib/prisma"
 
 export async function GET() {
   const token = (await cookies()).get("token")?.value
