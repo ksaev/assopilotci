@@ -28,18 +28,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false }, { status: 401 })
     }
 
-    // 🔥 JWT CLEAN (PAS D'ORG ICI)
+    // 🔥 JWT CLEAN
     const accessToken = sign(
-      {
-        userId: user.id,
-        role: user.role,
-      },
+      { sub: user.id },
       process.env.JWT_SECRET!,
       { expiresIn: "15m" }
     )
 
     const refreshToken = sign(
-      { userId: user.id },
+      { sub: user.id },
       process.env.REFRESH_SECRET!,
       { expiresIn: "7d" }
     )
@@ -51,21 +48,20 @@ export async function POST(req: Request) {
 
     res.cookies.set("access_token", accessToken, {
       httpOnly: true,
-      sameSite: "lax",
       path: "/",
+      sameSite: "lax",
       maxAge: 60 * 15,
     })
 
     res.cookies.set("refresh_token", refreshToken, {
       httpOnly: true,
-      sameSite: "lax",
       path: "/",
+      sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
     })
 
     return res
   } catch (e) {
-    console.error(e)
     return NextResponse.json({ success: false }, { status: 500 })
   }
 }

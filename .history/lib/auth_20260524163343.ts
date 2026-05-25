@@ -1,30 +1,24 @@
 import jwt from "jsonwebtoken"
-import bcrypt from "bcryptjs"
+import bcrypt from "bcrypt"
 import { NextRequest } from "next/server"
 
-const JWT_SECRET = process.env.JWT_SECRET!
-
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET manquant")
-}
+const JWT_SECRET = process.env.JWT_SECRET || "super-secret"
 
 export type JwtUser = {
-  id: string
+  userId: string
   role: string
-  organizationId?: string | null
+  organizationId?: string
 }
 
 /* =========================
-   SIGN TOKEN
+   TOKEN SIGN
 ========================= */
 export function signToken(payload: JwtUser) {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "15m", // access token court (IMPORTANT)
-  })
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" })
 }
 
 /* =========================
-   VERIFY TOKEN
+   TOKEN VERIFY
 ========================= */
 export function verifyToken(token: string): JwtUser | null {
   try {
@@ -35,10 +29,11 @@ export function verifyToken(token: string): JwtUser | null {
 }
 
 /* =========================
-   GET USER FROM REQUEST
+   GET CURRENT USER (AJOUT IMPORTANT)
 ========================= */
 export function getCurrentUser(req: NextRequest): JwtUser | null {
   const token = req.cookies.get("access_token")?.value
+
   if (!token) return null
 
   return verifyToken(token)
@@ -48,9 +43,9 @@ export function getCurrentUser(req: NextRequest): JwtUser | null {
    PASSWORD SECURITY
 ========================= */
 export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 10)
+  return await bcrypt.hash(password, 10)
 }
 
 export async function comparePassword(password: string, hash: string) {
-  return bcrypt.compare(password, hash)
+  return await bcrypt.compare(password, hash)
 }

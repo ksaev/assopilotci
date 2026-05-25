@@ -3,8 +3,7 @@ import { verify } from "jsonwebtoken"
 import { prisma } from "@/lib/prisma"
 
 type JwtPayload = {
-  userId: string
-  role: string
+  id: string
 }
 
 export async function proxy(req: NextRequest) {
@@ -12,13 +11,19 @@ export async function proxy(req: NextRequest) {
   const activeOrgId = req.cookies.get("active_org")?.value
   const { pathname } = req.nextUrl
 
-  // PUBLIC ROUTES
-  const publicRoutes = ["/login", "/register", "/_next", "/favicon.ico"]
+  const isLogin = pathname.startsWith("/login")
+  const isRegister = pathname.startsWith("/register")
 
-  if (publicRoutes.some((r) => pathname.startsWith(r))) {
+  // =========================
+  // PUBLIC ROUTES SAFE
+  // =========================
+  if (isLogin || isRegister) {
     return NextResponse.next()
   }
 
+  // =========================
+  // AUTH CHECK
+  // =========================
   const isProtected =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/owner") ||
@@ -38,14 +43,16 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  if (!user?.userId) {
+  if (!user?.id) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  // ================= ADMIN GLOBAL
+  // =========================
+  // OWNER
+  // =========================
   if (pathname.startsWith("/owner")) {
     const dbUser = await prisma.user.findUnique({
-      where: { id: user.userId },
+      where: { id: user.id },
       select: { role: true },
     })
 
@@ -54,24 +61,24 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // ================= ADMIN / GLOBAL ADMIN
+  // =========================
+  // ADMIN
+  // =========================
   if (pathname.startsWith("/admin")) {
     const dbUser = await prisma.user.findUnique({
-      where: { id: user.userId },
+      where: { id: user.id },
       select: { role: true },
     })
 
-    if (!dbUser || !["ADMIN", "SUPER_ADMIN"].includes(dbUser.role)) {
+    if (!dbUser || (dbUser.role !== "ADMIN" && dbUser.role !== "SUPER_ADMIN")) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
   }
 
-  // ================= MEMBER MULTI ORG
+  // =========================
+  // MEMBER
+  // =========================
   if (pathname.startsWith("/membre")) {
-    if (pathname.startsWith("/select-organization")) {
-      return NextResponse.next()
-    }
-
     if (!activeOrgId) {
       return NextResponse.redirect(
         new URL("/select-organization", req.url)
@@ -80,7 +87,7 @@ export async function proxy(req: NextRequest) {
 
     const membership = await prisma.organizationMember.findFirst({
       where: {
-        userId: user.userId,
+        userId: user.id,
         organizationId: activeOrgId,
       },
     })

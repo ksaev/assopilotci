@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname,useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   LayoutDashboard,
@@ -60,23 +60,10 @@ const memberLinks = [
 
 ]
 
-
 export function Sidebar({ userType }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   const links = userType === "admin" ? adminLinks : memberLinks
-
-  const router = useRouter()
-
-
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-    })
-
-    router.push("/login")
-    router.refresh()
-  }
 
   return (
     <motion.aside
@@ -186,14 +173,15 @@ export function Sidebar({ userType }: SidebarProps) {
           <AnimatePresence mode="wait">
             {!collapsed && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1">
+                <Link href="/login">
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                    onClick={handleLogout}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Déconnexion
                   </Button>
+                </Link>
               </motion.div>
             )}
           </AnimatePresence>

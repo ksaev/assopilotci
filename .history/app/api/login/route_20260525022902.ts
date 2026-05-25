@@ -14,7 +14,9 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
-        memberships: true,
+        memberships: {
+          include: { organization: true },
+        },
       },
     })
 
@@ -28,44 +30,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false }, { status: 401 })
     }
 
-    // 🔥 JWT CLEAN (PAS D'ORG ICI)
+    // ⚠️ JWT CLEAN (PAS DE ROLE GLOBAL)
     const accessToken = sign(
       {
-        userId: user.id,
-        role: user.role,
+        sub: user.id,
       },
       process.env.JWT_SECRET!,
       { expiresIn: "15m" }
     )
 
     const refreshToken = sign(
-      { userId: user.id },
+      {
+        sub: user.id,
+      },
       process.env.REFRESH_SECRET!,
       { expiresIn: "7d" }
     )
 
     const res = NextResponse.json({
       success: true,
-      multiple: user.memberships.length > 1,
+      hasMultipleOrgs: user.memberships.length > 1,
     })
 
     res.cookies.set("access_token", accessToken, {
       httpOnly: true,
-      sameSite: "lax",
       path: "/",
       maxAge: 60 * 15,
     })
 
     res.cookies.set("refresh_token", refreshToken, {
       httpOnly: true,
-      sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     })
 
     return res
   } catch (e) {
-    console.error(e)
     return NextResponse.json({ success: false }, { status: 500 })
   }
 }
