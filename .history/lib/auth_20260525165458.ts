@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
-import { cookies } from "next/headers"
 import { NextRequest } from "next/server"
 
 const JWT_SECRET = process.env.JWT_SECRET!
@@ -10,14 +9,14 @@ if (!JWT_SECRET) {
 }
 
 /* =========================
-   JWT TYPE (MINIMAL SAFE)
+   JWT TYPE (MINIMAL & SECURE)
 ========================= */
 export type JwtUser = {
   id: string
 }
 
 /* =========================
-   SIGN TOKEN
+   SIGN TOKEN (ACCESS TOKEN)
 ========================= */
 export function signToken(payload: JwtUser) {
   return jwt.sign(payload, JWT_SECRET, {
@@ -37,22 +36,14 @@ export function verifyToken(token: string): JwtUser | null {
 }
 
 /* =========================
-   SESSION (SERVER COMPONENTS)
+   GET USER FROM REQUEST
 ========================= */
-export async function getSession(): Promise<JwtUser | null> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("access_token")?.value
+export function getCurrentUser(
+  req: NextRequest
+): JwtUser | null {
+  const token =
+    req.cookies.get("access_token")?.value
 
-  if (!token) return null
-
-  return verifyToken(token)
-}
-
-/* =========================
-   API REQUEST CONTEXT
-========================= */
-export function getUserFromRequest(req: NextRequest): JwtUser | null {
-  const token = req.cookies.get("access_token")?.value
   if (!token) return null
 
   return verifyToken(token)
@@ -61,10 +52,15 @@ export function getUserFromRequest(req: NextRequest): JwtUser | null {
 /* =========================
    PASSWORD SECURITY
 ========================= */
-export async function hashPassword(password: string) {
+export async function hashPassword(
+  password: string
+) {
   return bcrypt.hash(password, 12)
 }
 
-export async function comparePassword(password: string, hash: string) {
+export async function comparePassword(
+  password: string,
+  hash: string
+) {
   return bcrypt.compare(password, hash)
 }

@@ -67,7 +67,7 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
 
-    if (!["ADMIN"].includes(membership.role)) {
+    if (!["ADMIN", "SUPER_ADMIN"].includes(membership.role)) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
   }

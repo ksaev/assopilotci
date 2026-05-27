@@ -373,7 +373,7 @@ export default function DependentsPage() {
     ]
 
     return (
-      <div className="flex justify-between relative mt-2">
+      <div className="flex justify-between relative mt-8">
         {steps.map((step, index) => {
           const Icon = step.icon
 

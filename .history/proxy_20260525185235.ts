@@ -67,7 +67,7 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
 
-    if (!["ADMIN"].includes(membership.role)) {
+    if (!["ADMIN", "SUPER_ADMIN"].includes(membership.role)) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
   }
@@ -92,14 +92,6 @@ export async function proxy(req: NextRequest) {
     if (!membership) {
       return NextResponse.redirect(new URL("/select-organization", req.url))
     }
-
-    // 🔒 autorise UNIQUEMENT MEMBER
-  if (membership.role !== "MEMBER") {
-    return NextResponse.redirect(
-      new URL("/login", req.url)
-    )
-  }
-    
 
     return NextResponse.next()
   }

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 type JwtPayload = {
   userId: string
+  role: string
 }
 
 export async function proxy(req: NextRequest) {
@@ -11,6 +12,7 @@ export async function proxy(req: NextRequest) {
   const activeOrgId = req.cookies.get("active_org")?.value
   const { pathname } = req.nextUrl
 
+  // PUBLIC ROUTES
   const publicRoutes = ["/login", "/register", "/_next", "/favicon.ico"]
 
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
@@ -40,34 +42,26 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  // ================= OWNER (SUPER ADMIN GLOBAL)
+  // ================= ADMIN GLOBAL
   if (pathname.startsWith("/owner")) {
-    // si tu veux garder owner → il faut un champ ailleurs (ou membership spécial)
-    const membership = await prisma.organizationMember.findFirst({
-      where: {
-        userId: user.userId,
-      },
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { role: true },
     })
 
-    if (!membership || membership.role !== "SUPER_ADMIN") {
+    if (dbUser?.role !== "SUPER_ADMIN") {
       return NextResponse.redirect(new URL("/login", req.url))
     }
   }
 
-  // ================= ADMIN / ADMIN ORG
+  // ================= ADMIN / GLOBAL ADMIN
   if (pathname.startsWith("/admin")) {
-    const membership = await prisma.organizationMember.findFirst({
-      where: {
-        userId: user.userId,
-        organizationId: activeOrgId ?? undefined,
-      },
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { role: true },
     })
 
-    if (!membership) {
-      return NextResponse.redirect(new URL("/login", req.url))
-    }
-
-    if (!["ADMIN"].includes(membership.role)) {
+    if (!dbUser || !["ADMIN", "SUPER_ADMIN"].includes(dbUser.role)) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
   }
@@ -79,7 +73,9 @@ export async function proxy(req: NextRequest) {
     }
 
     if (!activeOrgId) {
-      return NextResponse.redirect(new URL("/select-organization", req.url))
+      return NextResponse.redirect(
+        new URL("/select-organization", req.url)
+      )
     }
 
     const membership = await prisma.organizationMember.findFirst({
@@ -90,16 +86,10 @@ export async function proxy(req: NextRequest) {
     })
 
     if (!membership) {
-      return NextResponse.redirect(new URL("/select-organization", req.url))
+      return NextResponse.redirect(
+        new URL("/select-organization", req.url)
+      )
     }
-
-    // 🔒 autorise UNIQUEMENT MEMBER
-  if (membership.role !== "MEMBER") {
-    return NextResponse.redirect(
-      new URL("/login", req.url)
-    )
-  }
-    
 
     return NextResponse.next()
   }

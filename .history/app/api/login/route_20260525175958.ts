@@ -7,6 +7,10 @@ export async function POST(req: Request) {
   try {
     const { email, password } = await req.json()
 
+    if (!email || !password) {
+      return NextResponse.json({ success: false }, { status: 400 })
+    }
+
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
@@ -15,33 +19,20 @@ export async function POST(req: Request) {
     })
 
     if (!user) {
-      return NextResponse.json({
-        success: false,
-        message: "Utilisateur introuvable",
-      }, { status: 404 })
+      return NextResponse.json({ success: false }, { status: 404 })
     }
 
     const valid = await bcrypt.compare(password, user.password)
 
     if (!valid) {
-      return NextResponse.json({
-        success: false,
-        message: "Mot de passe incorrect",
-      }, { status: 401 })
+      return NextResponse.json({ success: false }, { status: 401 })
     }
 
-    const membership = user.memberships[0]
-
-    if (!membership) {
-      return NextResponse.json({
-        success: false,
-        message: "Aucune organisation",
-      }, { status: 403 })
-    }
-
+    // 🔥 JWT CLEAN (PAS D'ORG ICI)
     const accessToken = sign(
       {
         userId: user.id,
+        role: user.role,
       },
       process.env.JWT_SECRET!,
       { expiresIn: "15m" }
@@ -55,8 +46,7 @@ export async function POST(req: Request) {
 
     const res = NextResponse.json({
       success: true,
-      role: membership.role,
-      organizationId: membership.organizationId,
+      multiple: user.memberships.length > 1,
     })
 
     res.cookies.set("access_token", accessToken, {
@@ -75,9 +65,7 @@ export async function POST(req: Request) {
 
     return res
   } catch (e) {
-    return NextResponse.json({
-      success: false,
-      message: "Erreur serveur",
-    }, { status: 500 })
+    console.error(e)
+    return NextResponse.json({ success: false }, { status: 500 })
   }
 }
