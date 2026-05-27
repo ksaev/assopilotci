@@ -13,7 +13,7 @@ if (!JWT_SECRET) {
    JWT TYPE (MINIMAL SAFE)
 ========================= */
 export type JwtUser = {
-  userId: string
+  id: string
 }
 
 /* =========================
