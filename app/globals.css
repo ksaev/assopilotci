@@ -39,6 +39,21 @@
   --sidebar-border: oklch(0.25 0.03 160);
   --sidebar-ring: oklch(0.65 0.2 160);
 }
+:root {
+  --bg: #ffffff;
+  --text: #0f172a;
+}
+
+.dark {
+  --bg: #02150d;
+  --text: #ffffff;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.3s ease;
+}
 
 .dark {
   --background: oklch(0.12 0.02 160);
