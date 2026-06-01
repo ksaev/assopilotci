@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname, useRouter, useParams } from "next/navigation"
+import { usePathname,useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   LayoutDashboard,
@@ -18,19 +18,36 @@ import {
   Bell,
   LogOut,
   User,
-  ShieldCheck,
-  HeartHandshake,
-} from "lucide-react"
 
+
+  ShieldCheck,
+  HeartHandshake, 
+
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useParams } from "next/navigation"
+
 
 interface SidebarProps {
   userType: "admin" | "member"
 }
 
-/* ================= ADMIN LINKS ================= */
+const { organizationSlug } = useParams<{ organizationSlug: string }>()
+
+export const buildAdminLinks = (slug: string) => ({
+  dashboard: `/${slug}/admin/dashboard`,
+  members: `/${slug}/admin/members`,
+  solidarity: `/${slug}/admin/solidarity`,
+  transactions: `/${slug}/admin/transactions`,
+  events: `/${slug}/admin/events`,
+  reports: `/${slug}/admin/reports`,
+  documents: `/${slug}/admin/documents`,
+  notes: `/${slug}/admin/notes`,
+  settings: `/${slug}/admin/settings`,
+})
+
 const adminLinks = (organizationSlug: string) => [
   { href: `/${organizationSlug}/admin/dashboard`, label: "Tableau de Bord", icon: LayoutDashboard },
   { href: `/${organizationSlug}/admin/members`, label: "Membres", icon: Users },
@@ -43,33 +60,33 @@ const adminLinks = (organizationSlug: string) => [
   { href: `/${organizationSlug}/admin/settings`, label: "Paramètres", icon: Settings },
 ]
 
-/* ================= MEMBER LINKS ================= */
-const memberLinks = (organizationSlug: string) => [
-  { href: `/${organizationSlug}/member/dashboard`, label: "Mon Espace", icon: Home },
-  { href: `/${organizationSlug}/member/payments`, label: "Paiements", icon: Wallet },
-  { href: `/${organizationSlug}/member/dependents`, label: "Personnes à charge", icon: Users },
-  { href: `/${organizationSlug}/member/beneficiaries`, label: "Bénéficiaires désignés", icon: ShieldCheck },
-  { href: `/${organizationSlug}/member/events`, label: "Événements", icon: Calendar },
-  { href: `/${organizationSlug}/member/notifications`, label: "Notifications", icon: Bell },
-  { href: `/${organizationSlug}/member/profile`, label: "Mon Profil", icon: User },
+const memberLinks = [
+  { href: "/membre/dashboard", label: "Mon Espace", icon: Home },
+
+  { href: "/membre/payments", label: "Paiements", icon: Wallet },
+  { href: "/membre/dependents", label: "Personnes à charge", icon: Users },
+  { href: "/membre/beneficiaries", label: "Bénéficiaires designés", icon: ShieldCheck },
+
+  { href: "/membre/events", label: "Événements", icon: Calendar },
+  { href: "/membre/notifications", label: "Notifications", icon: Bell },
+  { href: "/membre/profile", label: "Mon Profil", icon: User },
+
 ]
+
 
 export function Sidebar({ userType }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
-
   const pathname = usePathname()
+  const links = userType === "admin" ? adminLinks : memberLinks
+
   const router = useRouter()
-  const params = useParams<{ organizationSlug: string }>()
 
-  const organizationSlug = params?.organizationSlug || ""
-
-  const links =
-    userType === "admin"
-      ? adminLinks(organizationSlug)
-      : memberLinks(organizationSlug)
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" })
+    await fetch("/api/auth/logout", {
+      method: "POST",
+    })
+
     router.push("/login")
     router.refresh()
   }
@@ -84,7 +101,7 @@ export function Sidebar({ userType }: SidebarProps) {
         background: "linear-gradient(180deg, var(--sidebar) 0%, oklch(0.08 0.02 160) 100%)",
       }}
     >
-      {/* LOGO */}
+      {/* Logo */}
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <AnimatePresence mode="wait">
           {!collapsed && (
@@ -104,7 +121,6 @@ export function Sidebar({ userType }: SidebarProps) {
             </motion.div>
           )}
         </AnimatePresence>
-
         {collapsed && (
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mx-auto">
             <span className="text-primary-foreground font-bold text-lg">GA</span>
@@ -112,11 +128,10 @@ export function Sidebar({ userType }: SidebarProps) {
         )}
       </div>
 
-      {/* NAVIGATION */}
+      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {links.map((link) => {
           const isActive = pathname === link.href
-
           return (
             <Link key={link.href} href={link.href}>
               <motion.div
@@ -130,7 +145,6 @@ export function Sidebar({ userType }: SidebarProps) {
                 )}
               >
                 <link.icon className="w-5 h-5 flex-shrink-0" />
-
                 <AnimatePresence mode="wait">
                   {!collapsed && (
                     <motion.span
@@ -149,14 +163,13 @@ export function Sidebar({ userType }: SidebarProps) {
         })}
       </nav>
 
-      {/* USER */}
+      {/* User Profile & Collapse */}
       <div className="p-4 border-t border-sidebar-border space-y-4">
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
           <Avatar className="w-10 h-10 border-2 border-primary">
             <AvatarImage src="/african-professional.jpg" />
-            <AvatarFallback>AK</AvatarFallback>
+            <AvatarFallback className="bg-primary text-primary-foreground">AK</AvatarFallback>
           </Avatar>
-
           <AnimatePresence mode="wait">
             {!collapsed && (
               <motion.div
@@ -165,41 +178,35 @@ export function Sidebar({ userType }: SidebarProps) {
                 exit={{ opacity: 0 }}
                 className="flex-1 min-w-0"
               >
-                <p className="font-medium text-sm truncate">Utilisateur</p>
+                <p className="font-medium text-sm truncate">Adama Koné</p>
                 <p className="text-xs text-sidebar-foreground/60 truncate">
-                  {userType === "admin" ? "Administrateur" : "Membre"}
+                  {userType === "admin" ? "Administrateur" : "Membre Gold"}
                 </p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* ACTIONS */}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
+            className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
           >
-            {collapsed ? <ChevronRight /> : <ChevronLeft />}
+            {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
           </Button>
-
           <AnimatePresence mode="wait">
             {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex-1"
-              >
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Déconnexion
-                </Button>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </Button>
               </motion.div>
             )}
           </AnimatePresence>

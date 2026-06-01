@@ -95,7 +95,7 @@ export default function SelectOrganizationPage() {
 
         case "MEMBER":
         default:
-          router.push(`/${slug}/member/dashboard/`)
+          router.push("/membre/dashboard")
           break
       }
     }
@@ -105,36 +105,34 @@ export default function SelectOrganizationPage() {
    * SELECT ORGANIZATION
    * =========================
    */
-const handleSelect = async (org: Organization) => {
-  try {
-    setSelected(org.id)
+  const handleSelect = async (org: Organization) => {
+    try {
+      setSelected(org.id)
 
-    const res = await fetch("/api/me/set-active-org", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ organizationId: org.id }),
-    })
+      const res = await fetch("/api/me/set-active-org", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organizationId: org.id }),
+      })
 
-    if (!res.ok) {
+      if (!res.ok) {
+        setSelected(null)
+        return
+      }
+
+      const data = await res.json()
+
+      if (!data.role) {
+        setError("Rôle introuvable")
+        return
+      }
+
+      redirectByRole(data.role)
+    } catch {
+      setError("Erreur de sélection")
       setSelected(null)
-      return
     }
-
-    const data = await res.json()
-
-    if (!data.role) {
-      setError("Rôle introuvable")
-      return
-    }
-
-    // ✅ ICI on envoie le slug
-    redirectByRole(data.role, org.slug)
-
-  } catch {
-    setError("Erreur de sélection")
-    setSelected(null)
   }
-}
 
   /**
    * =========================

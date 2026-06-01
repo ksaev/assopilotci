@@ -53,10 +53,7 @@ const memberLinks = (organizationSlug: string) => [
 
 export function MobileNav({ userType }: MobileNavProps) {
   const pathname = usePathname()
-  const params = useParams<{ organizationSlug: string }>()
-  const organizationSlug = params?.organizationSlug || ""
-
-  const links = userType === "admin" ? adminLinks(organizationSlug) : memberLinks(organizationSlug)
+  const links = userType === "admin" ? adminLinks : memberLinks
 
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">

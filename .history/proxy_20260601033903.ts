@@ -20,8 +20,7 @@ export async function proxy(req: NextRequest) {
   const isProtected =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/owner") ||
-    pathname.startsWith("/member")|| 
-    pathname.startsWith("/select-organization")
+    pathname.startsWith("/membre")
 
   if (!token && isProtected) {
     return NextResponse.redirect(new URL("/login", req.url))

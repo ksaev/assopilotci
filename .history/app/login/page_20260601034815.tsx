@@ -123,9 +123,9 @@ export default function LoginPage() {
     if (data.role === "SUPER_ADMIN") {
       router.push("/owner/dashboard")
     } else if (data.role === "ADMIN") {
-      router.push(`/select-organization`)
+      router.push("/admin/dashboard")
     } else {
-      router.push(`/select-organization`)
+      router.push("/membre/dashboard")
     }
     } catch (err) {
       console.error(err)
@@ -480,7 +480,7 @@ export default function LoginPage() {
               <div className="mt-6 text-center text-sm text-muted-foreground">
                 Vous souhaitez créer un compte pour votre organisation ?{" "}
                 <a
-                  href="/register"
+                  href="/create-organization"
                   className="text-primary hover:underline font-medium"
                 >
                   Faire une demande d’accès

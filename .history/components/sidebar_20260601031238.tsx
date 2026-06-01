@@ -44,14 +44,14 @@ const adminLinks = (organizationSlug: string) => [
 ]
 
 /* ================= MEMBER LINKS ================= */
-const memberLinks = (organizationSlug: string) => [
-  { href: `/${organizationSlug}/member/dashboard`, label: "Mon Espace", icon: Home },
-  { href: `/${organizationSlug}/member/payments`, label: "Paiements", icon: Wallet },
-  { href: `/${organizationSlug}/member/dependents`, label: "Personnes à charge", icon: Users },
-  { href: `/${organizationSlug}/member/beneficiaries`, label: "Bénéficiaires désignés", icon: ShieldCheck },
-  { href: `/${organizationSlug}/member/events`, label: "Événements", icon: Calendar },
-  { href: `/${organizationSlug}/member/notifications`, label: "Notifications", icon: Bell },
-  { href: `/${organizationSlug}/member/profile`, label: "Mon Profil", icon: User },
+const memberLinks = [
+  { href: "/membre/dashboard", label: "Mon Espace", icon: Home },
+  { href: "/membre/payments", label: "Paiements", icon: Wallet },
+  { href: "/membre/dependents", label: "Personnes à charge", icon: Users },
+  { href: "/membre/beneficiaries", label: "Bénéficiaires désignés", icon: ShieldCheck },
+  { href: "/membre/events", label: "Événements", icon: Calendar },
+  { href: "/membre/notifications", label: "Notifications", icon: Bell },
+  { href: "/membre/profile", label: "Mon Profil", icon: User },
 ]
 
 export function Sidebar({ userType }: SidebarProps) {
@@ -66,7 +66,7 @@ export function Sidebar({ userType }: SidebarProps) {
   const links =
     userType === "admin"
       ? adminLinks(organizationSlug)
-      : memberLinks(organizationSlug)
+      : memberLinks
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })

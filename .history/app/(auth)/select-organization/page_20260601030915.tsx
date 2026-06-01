@@ -95,7 +95,7 @@ export default function SelectOrganizationPage() {
 
         case "MEMBER":
         default:
-          router.push(`/${slug}/member/dashboard/`)
+          router.push(`/${slug}/member/dashboard/${slug}`)
           break
       }
     }

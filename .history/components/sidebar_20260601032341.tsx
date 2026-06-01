@@ -66,7 +66,7 @@ export function Sidebar({ userType }: SidebarProps) {
   const links =
     userType === "admin"
       ? adminLinks(organizationSlug)
-      : memberLinks(organizationSlug)
+      : memberLinks
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })

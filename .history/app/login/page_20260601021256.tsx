@@ -123,9 +123,9 @@ export default function LoginPage() {
     if (data.role === "SUPER_ADMIN") {
       router.push("/owner/dashboard")
     } else if (data.role === "ADMIN") {
-      router.push(`/select-organization`)
+      router.push("/" + data.organizationSlug + "/admin/dashboard")
     } else {
-      router.push(`/select-organization`)
+      router.push("/membre/dashboard")
     }
     } catch (err) {
       console.error(err)

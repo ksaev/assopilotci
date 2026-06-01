@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter, useParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
   Users,
@@ -28,35 +28,32 @@ interface MobileNavProps {
   userType: "admin" | "member"
 }
 
-const adminLinks = (organizationSlug: string) => [
-  { href: `/${organizationSlug}/admin/dashboard`, label: "Tableau de Bord", icon: LayoutDashboard },
-  { href: `/${organizationSlug}/admin/members`, label: "Membres", icon: Users },
-  { href: `/${organizationSlug}/admin/solidarity`, label: "Solidarité & Cotisations", icon: HeartHandshake },
-  { href: `/${organizationSlug}/admin/transactions`, label: "Transactions", icon: CreditCard },
-  { href: `/${organizationSlug}/admin/events`, label: "Événements", icon: Calendar },
-  { href: `/${organizationSlug}/admin/reports`, label: "Rapports", icon: FileText },
-  { href: `/${organizationSlug}/admin/documents`, label: "Documents", icon: FileText },
-  { href: `/${organizationSlug}/admin/notes`, label: "Notes", icon: FileText },
-  { href: `/${organizationSlug}/admin/settings`, label: "Paramètres", icon: Settings },
+const adminLinks = [
+  { href: "/admin/dashboard", label: "Tableau de Bord", icon: LayoutDashboard },
+  { href: "/admin/members", label: "Membres", icon: Users },
+  { href: "/admin/transactions", label: "Transactions", icon: CreditCard },
+  { href: "/admin/solidarity", label: "Solidarité & Cotisations", icon: HeartHandshake },
+  { href: "/admin/events", label: "Événements", icon: Calendar },
+  { href: "/admin/reports", label: "Rapports", icon: FileText },
+  { href: "/admin/documents", label: "Documents", icon: FileText },
+  { href: "/admin/notes", label: "Notes", icon: FileText },
+  { href: "/admin/settings", label: "Paramètres", icon: Settings },
 ]
 
-/* ================= MEMBER LINKS ================= */
-const memberLinks = (organizationSlug: string) => [
-  { href: `/${organizationSlug}/member/dashboard`, label: "Mon Espace", icon: Home },
-  { href: `/${organizationSlug}/member/payments`, label: "Paiements", icon: Wallet },
-  { href: `/${organizationSlug}/member/dependents`, label: "Personnes à charge", icon: Users },
-  { href: `/${organizationSlug}/member/beneficiaries`, label: "Bénéficiaires désignés", icon: ShieldCheck },
-  { href: `/${organizationSlug}/member/events`, label: "Événements", icon: Calendar },
-  { href: `/${organizationSlug}/member/notifications`, label: "Notifications", icon: Bell },
-  { href: `/${organizationSlug}/member/profile`, label: "Mon Profil", icon: User },
+const memberLinks = [
+  { href: "/membre/dashboard", label: "Mon Espace", icon: Home },
+  { href: "/membre/payments", label: "Paiements", icon: Wallet },
+  { href: "/membre/dependents", label: "Personnes à charge", icon: Users },
+  { href: "/membre/beneficiaries", label: "Bénéficiaires designés", icon: ShieldCheck },
+  { href: "/membre/events", label: "Événements", icon: Calendar },
+  { href: "/membre/notifications", label: "Notifications", icon: Bell },
+  { href: "/membre/profile", label: "Mon Profil", icon: User },
+
 ]
 
 export function MobileNav({ userType }: MobileNavProps) {
   const pathname = usePathname()
-  const params = useParams<{ organizationSlug: string }>()
-  const organizationSlug = params?.organizationSlug || ""
-
-  const links = userType === "admin" ? adminLinks(organizationSlug) : memberLinks(organizationSlug)
+  const links = userType === "admin" ? adminLinks : memberLinks
 
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">

@@ -81,60 +81,54 @@ export default function SelectOrganizationPage() {
    * ROLE ROUTING CLEAN
    * =========================
    */
-
-  
-    const redirectByRole = (role: string, slug?: string) => {
-      switch (role) {
-        case "SUPER_ADMIN":
-          router.push("/owner/dashboard")
-          break
-
-        case "ADMIN":
-          router.push(`/${slug}/admin/dashboard`)
-          break
-
-        case "MEMBER":
-        default:
-          router.push(`/${slug}/member/dashboard/`)
-          break
-      }
+  const redirectByRole = (role: string) => {
+    switch (role) {
+      case "SUPER_ADMIN":
+        router.push("/owner/dashboard")
+        break
+      case "ADMIN":
+        router.push(`/${data.organizationSlug}/admin/dashboard`)
+        break
+      case "MEMBER":
+      default:
+        router.push("/membre/dashboard")
+        break
     }
+  }
 
   /**
    * =========================
    * SELECT ORGANIZATION
    * =========================
    */
-const handleSelect = async (org: Organization) => {
-  try {
-    setSelected(org.id)
+  const handleSelect = async (org: Organization) => {
+    try {
+      setSelected(org.id)
 
-    const res = await fetch("/api/me/set-active-org", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ organizationId: org.id }),
-    })
+      const res = await fetch("/api/me/set-active-org", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organizationId: org.id }),
+      })
 
-    if (!res.ok) {
+      if (!res.ok) {
+        setSelected(null)
+        return
+      }
+
+      const data = await res.json()
+
+      if (!data.role) {
+        setError("Rôle introuvable")
+        return
+      }
+
+      redirectByRole(data.role)
+    } catch {
+      setError("Erreur de sélection")
       setSelected(null)
-      return
     }
-
-    const data = await res.json()
-
-    if (!data.role) {
-      setError("Rôle introuvable")
-      return
-    }
-
-    // ✅ ICI on envoie le slug
-    redirectByRole(data.role, org.slug)
-
-  } catch {
-    setError("Erreur de sélection")
-    setSelected(null)
   }
-}
 
   /**
    * =========================

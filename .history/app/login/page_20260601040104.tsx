@@ -122,8 +122,6 @@ export default function LoginPage() {
     // Routing intelligent
     if (data.role === "SUPER_ADMIN") {
       router.push("/owner/dashboard")
-    } else if (data.role === "ADMIN") {
-      router.push(`/select-organization`)
     } else {
       router.push(`/select-organization`)
     }
